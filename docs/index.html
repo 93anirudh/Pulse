@@ -1,0 +1,785 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="theme-color" content="#0b0b0d">
+<title>Pulse Board</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0b0b0d;
+    --bg-elev: #141416;
+    --bg-card: #1a1a1d;
+    --bg-card-hover: #222226;
+    --border: #2a2a2e;
+    --text: #e8e8ea;
+    --text-dim: #8a8a90;
+    --text-muted: #5a5a60;
+    --accent: #d97757;
+    --backlog: #6b7280;
+    --in-progress: #3b82f6;
+    --awaiting: #ef4444;
+    --done: #10b981;
+    --type-draft: #10b981;
+    --type-scan: #8b5cf6;
+    --type-code: #3b82f6;
+    --type-brainstorm: #f59e0b;
+    --type-question: #ef4444;
+  }
+  [data-theme="light"] {
+    --bg: #fafaf7;
+    --bg-elev: #ffffff;
+    --bg-card: #ffffff;
+    --bg-card-hover: #f5f5f2;
+    --border: #e5e5e2;
+    --text: #1a1a1d;
+    --text-dim: #5a5a60;
+    --text-muted: #8a8a90;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; }
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.5;
+    overscroll-behavior: none;
+  }
+  .app { display: flex; flex-direction: column; height: 100vh; }
+  
+  /* Header */
+  header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-elev);
+    flex-shrink: 0;
+  }
+  .brand { display: flex; align-items: baseline; gap: 8px; }
+  .brand h1 {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 22px;
+    letter-spacing: -0.02em;
+  }
+  .brand .meta { color: var(--text-muted); font-size: 12px; }
+  .header-actions { display: flex; gap: 8px; align-items: center; }
+  .icon-btn {
+    background: none; border: 1px solid var(--border); color: var(--text-dim);
+    padding: 8px 10px; border-radius: 8px; cursor: pointer; font-size: 13px;
+    transition: all 0.15s ease;
+  }
+  .icon-btn:hover { background: var(--bg-card-hover); color: var(--text); }
+  .icon-btn.primary { background: var(--accent); border-color: var(--accent); color: white; }
+  .icon-btn.primary:hover { opacity: 0.9; }
+  .icon-btn.primary:disabled { opacity: 0.5; cursor: not-allowed; }
+  .save-indicator {
+    font-size: 12px; color: var(--text-muted); margin-right: 8px;
+  }
+  .save-indicator.dirty { color: var(--awaiting); }
+  .save-indicator.saved { color: var(--done); }
+
+  /* Board */
+  .board {
+    flex: 1; overflow-x: auto; overflow-y: hidden;
+    display: flex; gap: 16px; padding: 16px;
+    scroll-snap-type: x mandatory;
+  }
+  .column {
+    flex: 0 0 320px;
+    background: var(--bg-elev);
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    display: flex; flex-direction: column;
+    max-height: 100%;
+    scroll-snap-align: start;
+  }
+  .column-header {
+    padding: 14px 16px;
+    display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .column-title {
+    display: flex; align-items: center; gap: 8px;
+    font-weight: 600; font-size: 13px;
+    text-transform: uppercase; letter-spacing: 0.05em;
+  }
+  .column-dot { width: 8px; height: 8px; border-radius: 50%; }
+  .column[data-status="backlog"] .column-dot { background: var(--backlog); }
+  .column[data-status="in_progress"] .column-dot { background: var(--in-progress); }
+  .column[data-status="awaiting_feedback"] .column-dot { background: var(--awaiting); }
+  .column[data-status="done"] .column-dot { background: var(--done); }
+  .column-count {
+    color: var(--text-muted); font-size: 12px;
+    background: var(--bg-card); padding: 2px 8px; border-radius: 10px;
+  }
+  .add-card {
+    background: none; border: none; color: var(--text-muted);
+    cursor: pointer; font-size: 18px; padding: 0 4px;
+  }
+  .add-card:hover { color: var(--text); }
+
+  .cards {
+    flex: 1; overflow-y: auto; padding: 12px;
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .cards.drag-over { background: var(--bg-card); border-radius: 0 0 12px 12px; }
+
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+    cursor: grab;
+    transition: transform 0.1s ease, border-color 0.15s ease, opacity 0.2s ease;
+    user-select: none;
+  }
+  .card:hover { border-color: var(--text-muted); }
+  .card.dragging { opacity: 0.4; cursor: grabbing; }
+  .card-title {
+    font-weight: 500; font-size: 14px; margin-bottom: 8px; line-height: 1.4;
+  }
+  .card-meta { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+  .badge {
+    font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 4px;
+    text-transform: uppercase; letter-spacing: 0.04em;
+  }
+  .badge-type-draft { background: rgba(16,185,129,0.15); color: var(--type-draft); }
+  .badge-type-scan { background: rgba(139,92,246,0.15); color: var(--type-scan); }
+  .badge-type-code { background: rgba(59,130,246,0.15); color: var(--type-code); }
+  .badge-type-brainstorm { background: rgba(245,158,11,0.15); color: var(--type-brainstorm); }
+  .badge-type-question { background: rgba(239,68,68,0.15); color: var(--type-question); }
+  .badge-needs-ani {
+    background: rgba(239,68,68,0.2); color: var(--awaiting);
+    font-size: 9px; padding: 2px 6px;
+  }
+  .card-cycle { color: var(--text-muted); font-size: 11px; margin-left: auto; }
+  .card-comments-count {
+    color: var(--text-muted); font-size: 11px;
+    display: flex; align-items: center; gap: 3px;
+  }
+
+  /* Modal */
+  .modal-backdrop {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+    display: none; align-items: center; justify-content: center;
+    padding: 20px; z-index: 100;
+    backdrop-filter: blur(4px);
+  }
+  .modal-backdrop.open { display: flex; }
+  .modal {
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    width: 100%; max-width: 560px; max-height: 90vh;
+    display: flex; flex-direction: column;
+    overflow: hidden;
+  }
+  .modal-header {
+    padding: 16px 20px; border-bottom: 1px solid var(--border);
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .modal-title-input {
+    background: none; border: none; color: var(--text);
+    font-family: 'Fraunces', serif; font-size: 18px; font-weight: 500;
+    flex: 1; outline: none;
+  }
+  .modal-close {
+    background: none; border: none; color: var(--text-dim);
+    cursor: pointer; font-size: 20px; padding: 0 8px;
+  }
+  .modal-body {
+    flex: 1; overflow-y: auto; padding: 16px 20px;
+    display: flex; flex-direction: column; gap: 16px;
+  }
+  .field-row { display: flex; gap: 12px; align-items: center; }
+  .field-label {
+    font-size: 11px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.05em; color: var(--text-muted);
+    width: 80px; flex-shrink: 0;
+  }
+  .field-value { color: var(--text); font-size: 13px; }
+  select.field-input, input.field-input {
+    background: var(--bg-card); border: 1px solid var(--border); color: var(--text);
+    padding: 6px 10px; border-radius: 6px; font-size: 13px; outline: none;
+    font-family: inherit;
+  }
+  .comments-section { margin-top: 8px; }
+  .comments-section h3 {
+    font-size: 11px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 12px;
+  }
+  .comment {
+    background: var(--bg-card); border-radius: 8px; padding: 10px 12px;
+    margin-bottom: 8px;
+  }
+  .comment-author {
+    font-size: 11px; font-weight: 600; color: var(--text-dim);
+    display: flex; justify-content: space-between; margin-bottom: 4px;
+  }
+  .comment-author.ani { color: var(--accent); }
+  .comment-author.agent { color: var(--in-progress); }
+  .comment-text { font-size: 13px; color: var(--text); white-space: pre-wrap; }
+  .comment-time { font-size: 10px; color: var(--text-muted); font-weight: 400; }
+  .comment-input {
+    width: 100%; background: var(--bg-card); border: 1px solid var(--border);
+    color: var(--text); padding: 10px 12px; border-radius: 8px;
+    font-size: 13px; resize: vertical; min-height: 60px; outline: none;
+    font-family: inherit;
+  }
+  .comment-input:focus { border-color: var(--accent); }
+  .modal-footer {
+    padding: 12px 20px; border-top: 1px solid var(--border);
+    display: flex; justify-content: space-between; align-items: center; gap: 8px;
+  }
+  .delete-btn {
+    background: none; border: 1px solid var(--awaiting); color: var(--awaiting);
+    padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px;
+  }
+
+  /* Auth modal */
+  .auth-modal { max-width: 440px; }
+  .auth-modal .modal-body { gap: 12px; }
+  .auth-modal h2 { font-family: 'Fraunces', serif; font-size: 22px; font-weight: 600; }
+  .auth-modal p { color: var(--text-dim); font-size: 13px; line-height: 1.6; }
+  .auth-modal .pat-input {
+    width: 100%; background: var(--bg-card); border: 1px solid var(--border);
+    color: var(--text); padding: 10px 12px; border-radius: 8px;
+    font-family: 'SF Mono', Menlo, monospace; font-size: 12px; outline: none;
+  }
+  .auth-modal .pat-input:focus { border-color: var(--accent); }
+
+  /* Loader */
+  .loader {
+    position: fixed; inset: 0; background: var(--bg);
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column; gap: 16px; z-index: 200;
+    transition: opacity 0.3s ease;
+  }
+  .loader.hidden { opacity: 0; pointer-events: none; }
+  .spinner {
+    width: 32px; height: 32px; border: 2px solid var(--border);
+    border-top-color: var(--accent); border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Toast */
+  .toast {
+    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(100px);
+    background: var(--bg-elev); border: 1px solid var(--border);
+    color: var(--text); padding: 10px 16px; border-radius: 8px;
+    font-size: 13px; box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+    transition: transform 0.25s ease;
+    z-index: 300;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+  .toast.error { border-color: var(--awaiting); }
+  .toast.success { border-color: var(--done); }
+
+  /* Mobile */
+  @media (max-width: 768px) {
+    header { padding: 12px 14px; }
+    .brand h1 { font-size: 18px; }
+    .brand .meta { display: none; }
+    .icon-btn { padding: 6px 10px; font-size: 12px; }
+    .save-indicator { display: none; }
+    .board { padding: 12px; gap: 12px; }
+    .column { flex: 0 0 88vw; }
+    .modal { max-height: 100vh; height: 100vh; border-radius: 0; max-width: 100%; }
+    .field-row { flex-direction: column; align-items: flex-start; gap: 4px; }
+    .field-label { width: auto; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="brand">
+      <h1>Pulse</h1>
+      <span class="meta" id="metaInfo">cycle 0 • —</span>
+    </div>
+    <div class="header-actions">
+      <span class="save-indicator saved" id="saveStatus">saved</span>
+      <button class="icon-btn" id="refreshBtn" title="Reload from GitHub">↻</button>
+      <button class="icon-btn" id="themeBtn" title="Toggle theme">☾</button>
+      <button class="icon-btn primary" id="saveBtn" disabled>Save</button>
+    </div>
+  </header>
+  <div class="board" id="board">
+    <!-- columns rendered by JS -->
+  </div>
+</div>
+
+<!-- Card detail modal -->
+<div class="modal-backdrop" id="cardModal">
+  <div class="modal">
+    <div class="modal-header">
+      <input class="modal-title-input" id="modalTitle" placeholder="Task title">
+      <button class="modal-close" data-close="cardModal">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field-row">
+        <span class="field-label">Status</span>
+        <select class="field-input" id="modalStatus">
+          <option value="backlog">Backlog</option>
+          <option value="in_progress">In Progress</option>
+          <option value="awaiting_feedback">Awaiting Feedback</option>
+          <option value="done">Done</option>
+        </select>
+      </div>
+      <div class="field-row">
+        <span class="field-label">Type</span>
+        <select class="field-input" id="modalType">
+          <option value="draft">Draft</option>
+          <option value="scan">Scan</option>
+          <option value="code">Code</option>
+          <option value="brainstorm">Brainstorm</option>
+          <option value="question">Question</option>
+        </select>
+      </div>
+      <div class="field-row">
+        <span class="field-label">Artifact</span>
+        <span class="field-value" id="modalArtifact">—</span>
+      </div>
+      <div class="field-row">
+        <span class="field-label">Cycle</span>
+        <span class="field-value" id="modalCycle">—</span>
+      </div>
+      <div class="comments-section">
+        <h3>Activity</h3>
+        <div id="modalComments"></div>
+        <textarea class="comment-input" id="modalCommentInput" placeholder="Reply to the agent..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="delete-btn" id="modalDelete">Delete</button>
+      <button class="icon-btn primary" id="modalSave">Apply</button>
+    </div>
+  </div>
+</div>
+
+<!-- Auth modal -->
+<div class="modal-backdrop" id="authModal">
+  <div class="modal auth-modal">
+    <div class="modal-header">
+      <h2 style="margin:0;">Connect to GitHub</h2>
+      <button class="modal-close" data-close="authModal" id="authClose">✕</button>
+    </div>
+    <div class="modal-body">
+      <p>To save changes back to your Pulse repo, paste a fine-grained GitHub Personal Access Token. Stored locally on this device only.</p>
+      <p style="font-size:11px; color:var(--text-muted)">Required permissions: Contents (read+write) on <code>93anirudh/Pulse</code></p>
+      <input class="pat-input" id="patInput" type="password" placeholder="github_pat_...">
+      <p style="font-size:11px;">Don't have one? <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" style="color:var(--accent)">Create one →</a></p>
+    </div>
+    <div class="modal-footer">
+      <span id="authMsg" style="font-size:12px; color:var(--text-muted)"></span>
+      <button class="icon-btn primary" id="authSave">Connect</button>
+    </div>
+  </div>
+</div>
+
+<!-- Loader -->
+<div class="loader" id="loader">
+  <div class="spinner"></div>
+  <div style="font-family:'Fraunces',serif; font-size:14px; color:var(--text-muted)" id="loaderText">Loading board…</div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ============== CONFIG ==============
+const REPO_OWNER = "93anirudh";
+const REPO_NAME = "Pulse";
+const STATE_PATH = "board-state.json";
+const BRANCH = "main";
+
+// ============== STATE ==============
+let state = null;
+let stateSha = null;
+let dirty = false;
+let activeCardId = null;
+let pat = localStorage.getItem("pulse_pat") || null;
+
+// ============== UTILS ==============
+const $ = (sel) => document.querySelector(sel);
+const $$ = (sel) => document.querySelectorAll(sel);
+const uid = () => "id-" + Math.random().toString(36).slice(2, 10);
+const isoNow = () => new Date().toISOString();
+
+function fmtRelative(iso) {
+  if (!iso) return "—";
+  const diff = Date.now() - new Date(iso).getTime();
+  const m = Math.floor(diff / 60000);
+  if (m < 1) return "just now";
+  if (m < 60) return m + "m ago";
+  const h = Math.floor(m / 60);
+  if (h < 24) return h + "h ago";
+  return Math.floor(h / 24) + "d ago";
+}
+
+function showToast(msg, kind = "") {
+  const t = $("#toast");
+  t.textContent = msg;
+  t.className = "toast show " + kind;
+  setTimeout(() => t.classList.remove("show"), 2400);
+}
+
+function setLoader(visible, text) {
+  $("#loader").classList.toggle("hidden", !visible);
+  if (text) $("#loaderText").textContent = text;
+}
+
+function markDirty(d = true) {
+  dirty = d;
+  const el = $("#saveStatus");
+  el.textContent = d ? "unsaved" : "saved";
+  el.className = "save-indicator " + (d ? "dirty" : "saved");
+  $("#saveBtn").disabled = !d;
+}
+
+// ============== GITHUB API ==============
+async function ghFetch(path, opts = {}) {
+  const url = "https://api.github.com/repos/" + REPO_OWNER + "/" + REPO_NAME + path;
+  const headers = { "Accept": "application/vnd.github+json", ...(opts.headers || {}) };
+  if (pat) headers["Authorization"] = "Bearer " + pat;
+  const res = await fetch(url, { ...opts, headers });
+  if (res.status === 401 || res.status === 403) {
+    promptAuth("Token rejected — paste a valid one.");
+    throw new Error("Auth failed");
+  }
+  if (!res.ok) {
+    const txt = await res.text();
+    throw new Error("GH " + res.status + ": " + txt);
+  }
+  return res.json();
+}
+
+async function loadState() {
+  setLoader(true, "Loading board…");
+  try {
+    // Use raw URL if no PAT (public repo) or API if private
+    const data = await ghFetch("/contents/" + STATE_PATH + "?ref=" + BRANCH);
+    stateSha = data.sha;
+    state = JSON.parse(decodeURIComponent(escape(atob(data.content))));
+    if (!state.items) state.items = [];
+    if (!state.inbox_comments) state.inbox_comments = [];
+    render();
+    setLoader(false);
+    markDirty(false);
+  } catch (e) {
+    setLoader(false);
+    if (!pat) {
+      promptAuth("Paste a token to load the board.");
+    } else {
+      showToast("Load failed: " + e.message, "error");
+    }
+  }
+}
+
+async function saveState() {
+  if (!pat) { promptAuth(); return; }
+  if (!dirty) return;
+  setLoader(true, "Saving to GitHub…");
+  try {
+    state.last_updated_iso = isoNow();
+    const content = btoa(unescape(encodeURIComponent(JSON.stringify(state, null, 2))));
+    const body = {
+      message: "board: ani updated state via dashboard",
+      content,
+      sha: stateSha,
+      branch: BRANCH,
+    };
+    const result = await ghFetch("/contents/" + STATE_PATH, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    stateSha = result.content.sha;
+    markDirty(false);
+    setLoader(false);
+    showToast("Saved", "success");
+  } catch (e) {
+    setLoader(false);
+    showToast("Save failed: " + e.message, "error");
+  }
+}
+
+// ============== AUTH ==============
+function promptAuth(msg) {
+  if (msg) $("#authMsg").textContent = msg;
+  $("#authModal").classList.add("open");
+  $("#patInput").focus();
+}
+
+$("#authSave").onclick = async () => {
+  const v = $("#patInput").value.trim();
+  if (!v.startsWith("github_pat_") && !v.startsWith("ghp_")) {
+    $("#authMsg").textContent = "That doesn't look like a GitHub PAT.";
+    return;
+  }
+  pat = v;
+  localStorage.setItem("pulse_pat", pat);
+  $("#authModal").classList.remove("open");
+  $("#patInput").value = "";
+  $("#authMsg").textContent = "";
+  loadState();
+};
+
+$("#authClose").onclick = () => $("#authModal").classList.remove("open");
+
+// ============== RENDER ==============
+const COLUMNS = [
+  { id: "backlog", label: "Backlog" },
+  { id: "in_progress", label: "In Progress" },
+  { id: "awaiting_feedback", label: "Awaiting Feedback" },
+  { id: "done", label: "Done" },
+];
+
+function render() {
+  // Update meta
+  $("#metaInfo").textContent = "cycle " + (state.agent_cycle || 0) + " • " + fmtRelative(state.last_updated_iso);
+  
+  // Render columns
+  const board = $("#board");
+  board.innerHTML = "";
+  COLUMNS.forEach(col => {
+    const items = state.items.filter(i => i.status === col.id);
+    const colEl = document.createElement("div");
+    colEl.className = "column";
+    colEl.dataset.status = col.id;
+    colEl.innerHTML = `
+      <div class="column-header">
+        <div class="column-title">
+          <span class="column-dot"></span>
+          <span>${col.label}</span>
+          <span class="column-count">${items.length}</span>
+        </div>
+        <button class="add-card" data-add-to="${col.id}" title="Add card">+</button>
+      </div>
+      <div class="cards" data-col="${col.id}">
+        ${items.map(renderCard).join("")}
+      </div>
+    `;
+    board.appendChild(colEl);
+  });
+  attachDragHandlers();
+  attachClickHandlers();
+}
+
+function renderCard(item) {
+  const aniComments = (item.comments || []).filter(c => c.author === "ani").length;
+  const agentComments = (item.comments || []).filter(c => c.author === "agent").length;
+  return `
+    <div class="card" data-id="${item.id}" draggable="true">
+      <div class="card-title">${escapeHtml(item.title)}</div>
+      <div class="card-meta">
+        <span class="badge badge-type-${item.type || 'brainstorm'}">${item.type || 'task'}</span>
+        ${item.needs_ani ? '<span class="badge badge-needs-ani">needs ani</span>' : ''}
+        ${(aniComments + agentComments) > 0 ? `<span class="card-comments-count">💬 ${aniComments + agentComments}</span>` : ''}
+        ${item.agent_cycle_created ? `<span class="card-cycle">c${item.agent_cycle_created}</span>` : ''}
+      </div>
+    </div>
+  `;
+}
+
+function escapeHtml(s) {
+  if (!s) return "";
+  return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+
+// ============== DRAG & DROP ==============
+function attachDragHandlers() {
+  $$(".card").forEach(card => {
+    card.addEventListener("dragstart", e => {
+      card.classList.add("dragging");
+      e.dataTransfer.setData("text/plain", card.dataset.id);
+      e.dataTransfer.effectAllowed = "move";
+    });
+    card.addEventListener("dragend", () => card.classList.remove("dragging"));
+  });
+  $$(".cards").forEach(zone => {
+    zone.addEventListener("dragover", e => {
+      e.preventDefault();
+      zone.classList.add("drag-over");
+    });
+    zone.addEventListener("dragleave", () => zone.classList.remove("drag-over"));
+    zone.addEventListener("drop", e => {
+      e.preventDefault();
+      zone.classList.remove("drag-over");
+      const id = e.dataTransfer.getData("text/plain");
+      const newStatus = zone.dataset.col;
+      const item = state.items.find(i => i.id === id);
+      if (item && item.status !== newStatus) {
+        item.status = newStatus;
+        item.updated_iso = isoNow();
+        // Add ani comment about the move
+        if (!item.comments) item.comments = [];
+        item.comments.push({
+          author: "ani",
+          text: "[moved to " + newStatus.replace("_", " ") + "]",
+          ts_iso: isoNow(),
+        });
+        markDirty(true);
+        render();
+      }
+    });
+  });
+}
+
+// ============== CLICK / MODAL ==============
+function attachClickHandlers() {
+  $$(".card").forEach(card => {
+    card.addEventListener("click", e => {
+      if (card.classList.contains("dragging")) return;
+      openCard(card.dataset.id);
+    });
+  });
+  $$(".add-card").forEach(btn => {
+    btn.addEventListener("click", e => {
+      e.stopPropagation();
+      addNewCard(btn.dataset.addTo);
+    });
+  });
+}
+
+function addNewCard(status) {
+  const item = {
+    id: uid(),
+    title: "New task",
+    type: "brainstorm",
+    status: status,
+    created_iso: isoNow(),
+    updated_iso: isoNow(),
+    needs_ani: false,
+    comments: [],
+    agent_cycle_created: state.agent_cycle || 0,
+  };
+  state.items.push(item);
+  markDirty(true);
+  render();
+  openCard(item.id);
+}
+
+function openCard(id) {
+  activeCardId = id;
+  const item = state.items.find(i => i.id === id);
+  if (!item) return;
+  $("#modalTitle").value = item.title || "";
+  $("#modalStatus").value = item.status || "backlog";
+  $("#modalType").value = item.type || "brainstorm";
+  $("#modalArtifact").innerHTML = item.artifact_path
+    ? `<a href="https://github.com/${REPO_OWNER}/${REPO_NAME}/blob/${BRANCH}/${item.artifact_path}" target="_blank" style="color:var(--accent);text-decoration:none">${item.artifact_path}</a>`
+    : "—";
+  $("#modalCycle").textContent = item.agent_cycle_created != null ? "c" + item.agent_cycle_created : "—";
+  renderComments(item);
+  $("#modalCommentInput").value = "";
+  $("#cardModal").classList.add("open");
+}
+
+function renderComments(item) {
+  const wrap = $("#modalComments");
+  if (!item.comments || item.comments.length === 0) {
+    wrap.innerHTML = '<p style="font-size:12px;color:var(--text-muted)">No activity yet</p>';
+    return;
+  }
+  wrap.innerHTML = item.comments.map(c => `
+    <div class="comment">
+      <div class="comment-author ${c.author}">
+        <span>${c.author === 'agent' ? '🤖 Agent' : 'You'}</span>
+        <span class="comment-time">${fmtRelative(c.ts_iso)}</span>
+      </div>
+      <div class="comment-text">${escapeHtml(c.text)}</div>
+    </div>
+  `).join("");
+}
+
+$("#modalSave").onclick = () => {
+  const item = state.items.find(i => i.id === activeCardId);
+  if (!item) return;
+  const newTitle = $("#modalTitle").value.trim();
+  const newStatus = $("#modalStatus").value;
+  const newType = $("#modalType").value;
+  const newComment = $("#modalCommentInput").value.trim();
+  let changed = false;
+  if (item.title !== newTitle) { item.title = newTitle; changed = true; }
+  if (item.status !== newStatus) { item.status = newStatus; changed = true; }
+  if (item.type !== newType) { item.type = newType; changed = true; }
+  if (newComment) {
+    if (!item.comments) item.comments = [];
+    item.comments.push({ author: "ani", text: newComment, ts_iso: isoNow() });
+    changed = true;
+  }
+  if (changed) {
+    item.updated_iso = isoNow();
+    markDirty(true);
+    render();
+  }
+  $("#cardModal").classList.remove("open");
+};
+
+$("#modalDelete").onclick = () => {
+  if (!confirm("Delete this card?")) return;
+  state.items = state.items.filter(i => i.id !== activeCardId);
+  markDirty(true);
+  render();
+  $("#cardModal").classList.remove("open");
+};
+
+// Close modals
+$$(".modal-close").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.getElementById(btn.dataset.close).classList.remove("open");
+  });
+});
+$$(".modal-backdrop").forEach(bd => {
+  bd.addEventListener("click", e => {
+    if (e.target === bd) bd.classList.remove("open");
+  });
+});
+
+// ============== HEADER BUTTONS ==============
+$("#saveBtn").onclick = saveState;
+$("#refreshBtn").onclick = () => {
+  if (dirty && !confirm("Discard unsaved changes?")) return;
+  loadState();
+};
+$("#themeBtn").onclick = () => {
+  const cur = document.documentElement.getAttribute("data-theme") || "dark";
+  const next = cur === "dark" ? "light" : "dark";
+  document.documentElement.setAttribute("data-theme", next);
+  localStorage.setItem("pulse_theme", next);
+  $("#themeBtn").textContent = next === "dark" ? "☾" : "☀";
+};
+
+// Init theme
+const savedTheme = localStorage.getItem("pulse_theme") || "dark";
+document.documentElement.setAttribute("data-theme", savedTheme);
+$("#themeBtn").textContent = savedTheme === "dark" ? "☾" : "☀";
+
+// ============== INIT ==============
+if (!pat) {
+  setLoader(false);
+  promptAuth("Welcome. Connect to GitHub to load the board.");
+} else {
+  loadState();
+}
+
+// Auto-refresh every 60s if not dirty
+setInterval(() => {
+  if (!dirty && pat) loadState();
+}, 60000);
+
+// Warn on unsaved changes
+window.addEventListener("beforeunload", e => {
+  if (dirty) { e.preventDefault(); e.returnValue = ""; }
+});
+</script>
+</body>
+</html>
