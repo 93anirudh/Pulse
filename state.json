@@ -3,6 +3,8 @@
   "waiting_since": null,
   "pending_question": null,
   "reminder_count": 0,
-  "last_action": "init",
-  "cycle": 0
+  "last_action": "BOOTSTRAP",
+  "last_run": "2026-05-08T00:00:00Z",
+  "cycle": 1,
+  "current_item_id": null
 }

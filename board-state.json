@@ -1,7 +1,140 @@
 {
   "version": 1,
-  "last_updated_iso": "2026-05-07T00:00:00Z",
-  "agent_cycle": 0,
-  "items": [],
+  "last_updated_iso": "2026-05-08T00:00:00Z",
+  "agent_cycle": 1,
+  "items": [
+    {
+      "id": "p1",
+      "title": "Finalize Pulse question set (route by readiness × workflow)",
+      "type": "brainstorm",
+      "status": "backlog",
+      "created_iso": "2026-05-08T00:00:00Z",
+      "updated_iso": "2026-05-08T00:00:00Z",
+      "artifact_path": null,
+      "agent_cycle_created": 1,
+      "needs_ani": false,
+      "comments": [{"author": "agent", "text": "Seeded from _context.md Active priorities #1 (Drafting). Real question set must route by biggest pain workflow, standardized inputs, appetite for 30-min plug-in.", "ts_iso": "2026-05-08T00:00:00Z"}]
+    },
+    {
+      "id": "p2",
+      "title": "Lock the wedge workflow for plug-in product",
+      "type": "brainstorm",
+      "status": "backlog",
+      "created_iso": "2026-05-08T00:00:00Z",
+      "updated_iso": "2026-05-08T00:00:00Z",
+      "artifact_path": null,
+      "agent_cycle_created": 1,
+      "needs_ani": false,
+      "comments": [{"author": "agent", "text": "Seeded from Active priorities #2. Working hypothesis: GSTR-2B reconciliation. Needs scoring vs TDS, Form 3CD, ITR, MCA on pain × inputs × monthly recurrence.", "ts_iso": "2026-05-08T00:00:00Z"}]
+    },
+    {
+      "id": "p3",
+      "title": "Set up 2 distribution channels for 30-day test (LinkedIn + ICAI)",
+      "type": "brainstorm",
+      "status": "backlog",
+      "created_iso": "2026-05-08T00:00:00Z",
+      "updated_iso": "2026-05-08T00:00:00Z",
+      "artifact_path": null,
+      "agent_cycle_created": 1,
+      "needs_ani": false,
+      "comments": [{"author": "agent", "text": "Seeded from Active priorities #3. Not started.", "ts_iso": "2026-05-08T00:00:00Z"}]
+    },
+    {
+      "id": "p4",
+      "title": "Build plug-in product MVP for chosen workflow",
+      "type": "brainstorm",
+      "status": "awaiting_feedback",
+      "created_iso": "2026-05-08T00:00:00Z",
+      "updated_iso": "2026-05-08T00:00:00Z",
+      "artifact_path": null,
+      "agent_cycle_created": 1,
+      "needs_ani": false,
+      "comments": [{"author": "agent", "text": "Seeded from Active priorities #4. Blocked by p2 (wedge workflow lock).", "ts_iso": "2026-05-08T00:00:00Z"}]
+    },
+    {
+      "id": "p5",
+      "title": "Live-impact-metric infrastructure on landing page",
+      "type": "brainstorm",
+      "status": "awaiting_feedback",
+      "created_iso": "2026-05-08T00:00:00Z",
+      "updated_iso": "2026-05-08T00:00:00Z",
+      "artifact_path": null,
+      "agent_cycle_created": 1,
+      "needs_ani": false,
+      "comments": [{"author": "agent", "text": "Seeded from Active priorities #5. Blocked by p4 (MVP).", "ts_iso": "2026-05-08T00:00:00Z"}]
+    },
+    {
+      "id": "q1",
+      "title": "Draft v1 Pulse question set (12-15 questions, 5 pillars, routing logic)",
+      "type": "brainstorm",
+      "status": "backlog",
+      "created_iso": "2026-05-08T00:00:00Z",
+      "updated_iso": "2026-05-08T00:00:00Z",
+      "artifact_path": null,
+      "agent_cycle_created": 1,
+      "needs_ani": false,
+      "comments": [{"author": "agent", "text": "Seeded from [answerable] open question. Covers 5 pillars × workflow routing.", "ts_iso": "2026-05-08T00:00:00Z"}]
+    },
+    {
+      "id": "q2",
+      "title": "Score CA workflows on pain × inputs × recurrence (GSTR-2B, TDS, 3CD, ITR, MCA)",
+      "type": "brainstorm",
+      "status": "backlog",
+      "created_iso": "2026-05-08T00:00:00Z",
+      "updated_iso": "2026-05-08T00:00:00Z",
+      "artifact_path": null,
+      "agent_cycle_created": 1,
+      "needs_ani": false,
+      "comments": [{"author": "agent", "text": "Seeded from [answerable] open question. Output unblocks p2 and q6.", "ts_iso": "2026-05-08T00:00:00Z"}]
+    },
+    {
+      "id": "q3",
+      "title": "Build competitive matrix of Indian CA tools (Tally, ClearTax, KDK, Winman, etc.)",
+      "type": "brainstorm",
+      "status": "backlog",
+      "created_iso": "2026-05-08T00:00:00Z",
+      "updated_iso": "2026-05-08T00:00:00Z",
+      "artifact_path": null,
+      "agent_cycle_created": 1,
+      "needs_ani": false,
+      "comments": [{"author": "agent", "text": "Seeded from [answerable] open question. Source: public web.", "ts_iso": "2026-05-08T00:00:00Z"}]
+    },
+    {
+      "id": "q4",
+      "title": "Price floor for solo CAs in Tier 2/3 (hypothesis ₹500-2,000/month)",
+      "type": "question",
+      "status": "awaiting_feedback",
+      "created_iso": "2026-05-08T00:00:00Z",
+      "updated_iso": "2026-05-08T00:00:00Z",
+      "artifact_path": null,
+      "agent_cycle_created": 1,
+      "needs_ani": true,
+      "comments": [{"author": "agent", "text": "Seeded from [needs Ani] open question. Awaiting Ani's call.", "ts_iso": "2026-05-08T00:00:00Z"}]
+    },
+    {
+      "id": "q5",
+      "title": "Awareness layer: separate free tier or Pulse as front door indefinitely?",
+      "type": "question",
+      "status": "awaiting_feedback",
+      "created_iso": "2026-05-08T00:00:00Z",
+      "updated_iso": "2026-05-08T00:00:00Z",
+      "artifact_path": null,
+      "agent_cycle_created": 1,
+      "needs_ani": true,
+      "comments": [{"author": "agent", "text": "Seeded from [needs Ani] open question. Packaging/positioning call.", "ts_iso": "2026-05-08T00:00:00Z"}]
+    },
+    {
+      "id": "q6",
+      "title": "Confirm GSTR-2B as v1 wedge after workflow scoring",
+      "type": "question",
+      "status": "awaiting_feedback",
+      "created_iso": "2026-05-08T00:00:00Z",
+      "updated_iso": "2026-05-08T00:00:00Z",
+      "artifact_path": null,
+      "agent_cycle_created": 1,
+      "needs_ani": true,
+      "comments": [{"author": "agent", "text": "Seeded from [needs Ani] open question. Depends on q2 output before Ani decides.", "ts_iso": "2026-05-08T00:00:00Z"}]
+    }
+  ],
   "inbox_comments": []
 }
